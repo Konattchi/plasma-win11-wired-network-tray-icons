@@ -1,0 +1,6 @@
+diff --git a/applet/main.qml b/applet/main.qml
+--- a/applet/main.qml
++++ b/applet/main.qml
+@@ -56 +56 @@
+-    Plasmoid.icon: inPanel ? connectionIconProvider.connectionIcon + "-symbolic" : connectionIconProvider.connectionTooltipIcon
++    Plasmoid.icon: inPanel ? (connectionIconProvider.connectionIcon === "network-wired-activated" ? "win11-wired-activated" : connectionIconProvider.connectionIcon === "network-wired-activated-limited" ? "win11-wired-activated-limited" : connectionIconProvider.connectionIcon === "network-wired-activated-locked" ? "win11-wired-activated-locked" : connectionIconProvider.connectionIcon === "network-wired-available" ? "win11-wired-available" : connectionIconProvider.connectionIcon + "-symbolic") : connectionIconProvider.connectionTooltipIcon

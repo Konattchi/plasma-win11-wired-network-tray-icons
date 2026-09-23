@@ -9,7 +9,11 @@ if [[ ! -f "$BACKUP" ]]; then
     exit 1
 fi
 
-"$ROOT/scripts/install.sh" "${1:-}"
+if [[ "${1:-}" == "--dry-run" ]]; then
+    "$ROOT/scripts/install.sh" --dry-run
+else
+    "$ROOT/scripts/install.sh"
+fi
 if [[ "${1:-}" != "--dry-run" ]]; then
     "$ROOT/scripts/verify.sh"
 fi

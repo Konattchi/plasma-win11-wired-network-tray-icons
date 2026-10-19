@@ -23,7 +23,7 @@ The included SVGs are tray-optimized 22x22 versions and are installed into both 
 
 Tested with `plasma-nm 6.7.4` / upstream tag `v6.7.4`.
 
-**Plasma 6.8.0 port:** The icon-selection expression at `applet/main.qml:56` is unchanged upstream. Installation/runtime tests on 6.8 are still pending; use the `plasma-6.8-port` testing branch.
+**Plasma 6.8.0 port:** The icon-selection expression at `applet/main.qml:56` is unchanged upstream. The mod has been patched, built, installed, and verified successfully on CachyOS `plasma-nm 6.8.0-1.1` using the `plasma-6.8-port` branch. Plasma Shell initially failed to return with the legacy quit/replace restart procedure; restarting `plasma-plasmashell.service` through systemd recovered the panel, and the installer and restore scripts now use that method. A full restore/reinstall test for this branch remains pending.
 
 ## Install
 

@@ -15,7 +15,7 @@ The included SVGs are tray-optimized 22x22 versions and are installed into both 
 
 ## Requirements
 
-- KDE Plasma 6.7.x or Plasma 6.8.0 (6.8.0 port under test)
+- KDE Plasma 6.7.x or Plasma 6.8.0 (tested on CachyOS)
 - `plasma-nm`
 - a local icon theme named `Win11` at `~/.local/share/icons/Win11`
 - Arch Linux / CachyOS-style `pacman` package metadata
@@ -23,7 +23,7 @@ The included SVGs are tray-optimized 22x22 versions and are installed into both 
 
 Tested with `plasma-nm 6.7.4` / upstream tag `v6.7.4`.
 
-**Plasma 6.8.0 port:** The icon-selection expression at `applet/main.qml:56` is unchanged upstream. The mod has been patched, built, installed, and verified successfully on CachyOS `plasma-nm 6.8.0-1.1` using the `plasma-6.8-port` branch. Plasma Shell initially failed to return with the legacy quit/replace restart procedure; restarting `plasma-plasmashell.service` through systemd recovered the panel, and the installer and restore scripts now use that method. A full restore/reinstall test for this branch remains pending.
+**Plasma 6.8.0 port:** The icon-selection expression at `applet/main.qml:56` is unchanged upstream. The mod has been patched, built, installed, and verified successfully on CachyOS `plasma-nm 6.8.0-1.1` using the `plasma-6.8-port` branch. Plasma Shell initially failed to return with the legacy quit/replace restart procedure; restarting `plasma-plasmashell.service` through systemd recovered the panel, and the installer and restore scripts now use that method. A full restore/reinstall cycle also passed: `RESTORED BACKUP` returned the stock plugin SHA-256 `4efe27cbbb93da62e040ce5edffefce9bdfecce157eecdacac69b6cc16933358`, and a subsequent rebuild/reinstall returned `MOD INSTALLED`.
 
 ## Install
 

@@ -1,6 +1,6 @@
 # Win11 Wired Network Tray Icons for KDE Plasma
 
-A standalone KDE Plasma 6.7.x tweak that replaces the wired Ethernet tray glyphs used by the Networks applet with cleaner Win11-style monitor/network icons.
+A standalone KDE Plasma 6.7.x / 6.8.0 tweak that replaces the wired Ethernet tray glyphs used by the Networks applet with cleaner Win11-style monitor/network icons.
 
 The mod keeps Plasma's normal network-state logic intact. It only remaps these wired states to dedicated tray assets:
 
@@ -15,7 +15,7 @@ The included SVGs are tray-optimized 22x22 versions and are installed into both 
 
 ## Requirements
 
-- KDE Plasma 6.7.x
+- KDE Plasma 6.7.x or Plasma 6.8.0 (tested on CachyOS)
 - `plasma-nm`
 - a local icon theme named `Win11` at `~/.local/share/icons/Win11`
 - Arch Linux / CachyOS-style `pacman` package metadata
@@ -23,11 +23,15 @@ The included SVGs are tray-optimized 22x22 versions and are installed into both 
 
 Tested with `plasma-nm 6.7.4` / upstream tag `v6.7.4`.
 
+**Plasma 6.8.0 port:** The icon-selection expression at `applet/main.qml:56` is unchanged upstream. The mod has been patched, built, installed, and verified successfully on CachyOS `plasma-nm 6.8.0-1.1` using the `plasma-6.8-port` branch. Plasma Shell initially failed to return with the legacy quit/replace restart procedure; restarting `plasma-plasmashell.service` through systemd recovered the panel, and the installer and restore scripts now use that method. A full restore/reinstall cycle also passed: `RESTORED BACKUP` returned the stock plugin SHA-256 `4efe27cbbb93da62e040ce5edffefce9bdfecce157eecdacac69b6cc16933358`, and a subsequent rebuild/reinstall returned `MOD INSTALLED`.
+
 ## Install
 
 ```bash
 ./scripts/install.sh --dry-run
-./scripts/install.sh
+# First managed install requires a verified stock networkmanagement plugin
+# from exactly your installed plasma-nm version:
+./scripts/install.sh --backup-from /path/to/verified-stock/org.kde.plasma.networkmanagement.so
 ./scripts/verify.sh
 ```
 
@@ -35,7 +39,7 @@ The installer:
 
 - detects the installed `plasma-nm` version
 - checks out the matching upstream Plasma tag
-- preserves an immutable stock plugin backup
+- preserves an immutable stock plugin backup supplied explicitly on first install (do not use a prior Plasma version's backup)
 - applies the wired-icon mapping by exact-expression replacement
 - builds only `org.kde.plasma.networkmanagement`
 - installs the tray-optimized SVG assets
@@ -52,7 +56,7 @@ A package update can overwrite the rebuilt applet plugin. Reapply the mod with:
 ./scripts/verify.sh
 ```
 
-The original managed stock backup is preserved rather than replaced by an already-modified plugin.
+The original managed stock backup is preserved rather than replaced by an already-modified plugin. If you upgraded from Plasma 6.7 to 6.8, archive the *entire* previous `~/.local/state/plasma-network-icon` directory before initial 6.8 installation, and obtain a verified 6.8 stock plugin backup first. Never reuse a 6.7 backup for 6.8.
 
 ## Restore stock Plasma behavior
 

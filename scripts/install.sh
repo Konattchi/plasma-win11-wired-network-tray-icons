@@ -8,17 +8,23 @@ SRC="$WORK/plasma-nm"
 BUILD="$WORK/build"
 PLUGIN="/usr/lib/qt6/plugins/plasma/applets/org.kde.plasma.networkmanagement.so"
 BACKUP="$STATE/org.kde.plasma.networkmanagement.so.backup"
-PATCH="$ROOT/patches/plasma-6.7-win11-wired-icons.patch"
+PATCH="$ROOT/patches/plasma-6.7-win11-wired-icons.patch" # Reference mapping; replacement is exact-expression based.
 ICON22="$HOME/.local/share/icons/Win11/status/22"
 ICON24="$HOME/.local/share/icons/Win11/status/24"
 
 DRY_RUN=0
-if [[ "${1:-}" == "--dry-run" ]]; then
-    DRY_RUN=1
-elif [[ $# -gt 0 ]]; then
-    echo "Usage: $0 [--dry-run]" >&2
-    exit 2
-fi
+BACKUP_FROM=""
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --dry-run) DRY_RUN=1; shift ;;
+        --backup-from)
+            [[ $# -ge 2 ]] || { echo "Missing path after --backup-from" >&2; exit 2; }
+            BACKUP_FROM="$2"
+            shift 2
+            ;;
+        *) echo "Usage: $0 [--dry-run] [--backup-from /path/to/stock/plugin.so]" >&2; exit 2 ;;
+    esac
+done
 
 if ! command -v pacman >/dev/null 2>&1; then
     echo "This installer expects an Arch/CachyOS-style system with pacman." >&2
@@ -28,13 +34,16 @@ fi
 pkgver="$(pacman -Q plasma-nm | awk '{print $2}')"
 upstream_ver="${pkgver%%-*}"
 tag="v${upstream_ver}"
+if [[ "$upstream_ver" == "6.8.0" ]]; then
+    PATCH="$ROOT/patches/plasma-6.8-win11-wired-icons.patch"
+fi
 
 echo "plasma-nm package: $pkgver"
 echo "Upstream source tag: $tag"
 echo "Plugin: $PLUGIN"
 
-if [[ "$upstream_ver" != 6.7.* ]]; then
-    echo "Refusing untested Plasma NM series $upstream_ver. This package is for 6.7.x." >&2
+if [[ "$upstream_ver" != 6.7.* && "$upstream_ver" != "6.8.0" ]]; then
+    echo "Refusing unsupported Plasma NM version $upstream_ver. Supports 6.7.x and 6.8.0." >&2
     exit 1
 fi
 
@@ -48,7 +57,13 @@ if [[ ! -f "$PATCH" ]]; then
     exit 1
 fi
 
+if [[ -n "$BACKUP_FROM" && ! -f "$BACKUP_FROM" ]]; then
+    echo "Stock backup path not found: $BACKUP_FROM" >&2
+    exit 1
+fi
+
 if [[ $DRY_RUN -eq 1 ]]; then
+    echo "Stock plugin source for first install: ${BACKUP_FROM:-NOT PROVIDED}"
     echo "Patch SHA-256: $(sha256sum "$PATCH" | awk '{print $1}')"
     if [[ -f "$BACKUP" ]]; then
         echo "Managed stock backup: present"
@@ -60,6 +75,24 @@ if [[ $DRY_RUN -eq 1 ]]; then
     exit 0
 fi
 
+# Validate managed backup before cloning, building, or altering the icon theme.
+if [[ -f "$BACKUP" ]]; then
+    if [[ -n "$BACKUP_FROM" ]] && ! cmp -s "$BACKUP_FROM" "$BACKUP"; then
+        echo "ERROR: supplied stock backup differs from existing managed backup." >&2
+        exit 1
+    fi
+    if [[ -f "$STATE/state.env" ]]; then
+        recorded_tag="$(sed -n "s/^SOURCE_TAG='\\([^']*\\)'$/\\1/p" "$STATE/state.env")"
+        if [[ -n "$recorded_tag" && "$recorded_tag" != "$tag" ]]; then
+            echo "ERROR: managed backup belongs to $recorded_tag, not $tag." >&2
+            exit 1
+        fi
+    fi
+elif [[ -z "$BACKUP_FROM" ]]; then
+    echo "ERROR: first managed install requires a verified stock backup via --backup-from." >&2
+    exit 1
+fi
+
 mkdir -p "$STATE" "$WORK" "$ICON22" "$ICON24"
 
 rm -rf "$SRC" "$BUILD"
@@ -67,7 +100,7 @@ git clone --depth 1 --branch "$tag" https://github.com/KDE/plasma-nm.git "$SRC"
 
 cd "$SRC"
 
-# Patch the exact stock Plasma 6.7.x icon expression without depending on
+# Patch the verified stock Plasma 6.7.x / 6.8.0 icon expression without depending on
 # surrounding whitespace/line numbers in a unified diff.
 python - "$SRC/applet/main.qml" <<'PY'
 from pathlib import Path
@@ -102,10 +135,25 @@ if [[ ! -f "$BUILT" ]]; then
 fi
 
 if [[ ! -f "$BACKUP" ]]; then
-    cp "$PLUGIN" "$BACKUP"
-    chmod 0644 "$BACKUP"
+    if [[ -z "$BACKUP_FROM" ]]; then
+        echo "ERROR: first managed install requires --backup-from with a verified stock plugin of version $upstream_ver." >&2
+        echo "Do not use an old Plasma 6.7 backup for Plasma 6.8." >&2
+        exit 1
+    fi
+    install -m 0644 "$BACKUP_FROM" "$BACKUP"
     echo "Created immutable stock backup: $BACKUP"
 else
+    if [[ -n "$BACKUP_FROM" && "$(sha256sum "$BACKUP_FROM" | cut -d' ' -f1)" != "$(sha256sum "$BACKUP" | cut -d' ' -f1)" ]]; then
+        echo "ERROR: --backup-from conflicts with existing managed backup. Preserve/archive old state first." >&2
+        exit 1
+    fi
+    if [[ -f "$STATE/state.env" ]]; then
+        recorded_tag="$(sed -n "s/^SOURCE_TAG='\\([^']*\\)'$/\\1/p" "$STATE/state.env")"
+        if [[ -n "$recorded_tag" && "$recorded_tag" != "$tag" ]]; then
+            echo "ERROR: managed backup belongs to $recorded_tag, not $tag. Archive the old state and provide a matching stock backup." >&2
+            exit 1
+        fi
+    fi
     echo "Existing stock backup preserved: $BACKUP"
 fi
 
@@ -121,6 +169,11 @@ do
     install -m 0644 "$ROOT/icons/$icon" "$ICON22/$icon"
     install -m 0644 "$ROOT/icons/$icon" "$ICON24/$icon"
 done
+
+if ldd "$BUILT" | grep -q "not found"; then
+    echo "ERROR: unresolved dependencies in built plugin." >&2
+    exit 1
+fi
 
 sudo install -m 0755 "$BUILT" "$PLUGIN"
 
@@ -138,8 +191,7 @@ BACKUP_SHA256='$backup_sha'
 PATCH_SHA256='$patch_sha'
 EOF
 
-kquitapp6 plasmashell >/dev/null 2>&1 || true
-(plasmashell --replace >/dev/null 2>&1 &) || true
+systemctl --user restart plasma-plasmashell.service
 
 echo
 echo "Installed."

@@ -34,6 +34,9 @@ fi
 pkgver="$(pacman -Q plasma-nm | awk '{print $2}')"
 upstream_ver="${pkgver%%-*}"
 tag="v${upstream_ver}"
+if [[ "$upstream_ver" == "6.8.0" ]]; then
+    PATCH="$ROOT/patches/plasma-6.8-win11-wired-icons.patch"
+fi
 
 echo "plasma-nm package: $pkgver"
 echo "Upstream source tag: $tag"
@@ -70,6 +73,24 @@ if [[ $DRY_RUN -eq 1 ]]; then
     fi
     echo "DRY RUN COMPLETE. Nothing was changed."
     exit 0
+fi
+
+# Validate managed backup before cloning, building, or altering the icon theme.
+if [[ -f "$BACKUP" ]]; then
+    if [[ -n "$BACKUP_FROM" ]] && ! cmp -s "$BACKUP_FROM" "$BACKUP"; then
+        echo "ERROR: supplied stock backup differs from existing managed backup." >&2
+        exit 1
+    fi
+    if [[ -f "$STATE/state.env" ]]; then
+        recorded_tag="$(sed -n "s/^SOURCE_TAG='\\([^']*\\)'$/\\1/p" "$STATE/state.env")"
+        if [[ -n "$recorded_tag" && "$recorded_tag" != "$tag" ]]; then
+            echo "ERROR: managed backup belongs to $recorded_tag, not $tag." >&2
+            exit 1
+        fi
+    fi
+elif [[ -z "$BACKUP_FROM" ]]; then
+    echo "ERROR: first managed install requires a verified stock backup via --backup-from." >&2
+    exit 1
 fi
 
 mkdir -p "$STATE" "$WORK" "$ICON22" "$ICON24"

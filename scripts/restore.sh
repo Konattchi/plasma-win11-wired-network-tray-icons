@@ -25,8 +25,7 @@ done
 
 rm -f "$HOME/.cache/icon-cache.kcache"
 
-kquitapp6 plasmashell >/dev/null 2>&1 || true
-(plasmashell --replace >/dev/null 2>&1 &) || true
+systemctl --user restart plasma-plasmashell.service
 
 echo "Restored stock plasma-nm applet."
 echo "Current plugin SHA-256: $(sha256sum "$PLUGIN" | awk '{print $1}')"

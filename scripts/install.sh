@@ -191,8 +191,7 @@ BACKUP_SHA256='$backup_sha'
 PATCH_SHA256='$patch_sha'
 EOF
 
-kquitapp6 plasmashell >/dev/null 2>&1 || true
-(plasmashell --replace >/dev/null 2>&1 &) || true
+systemctl --user restart plasma-plasmashell.service
 
 echo
 echo "Installed."

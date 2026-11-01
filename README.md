@@ -1,6 +1,6 @@
 # Win11 Wired Network Tray Icons for KDE Plasma
 
-A standalone KDE Plasma 6.7.x / 6.8.0 tweak that replaces the wired Ethernet tray glyphs used by the Networks applet with cleaner Win11-style monitor/network icons.
+A standalone KDE Plasma 6.7.x / 6.8.x tweak that replaces the wired Ethernet tray glyphs used by the Networks applet with cleaner Win11-style monitor/network icons.
 
 The mod keeps Plasma's normal network-state logic intact. It only remaps these wired states to dedicated tray assets:
 
@@ -15,7 +15,7 @@ The included SVGs are tray-optimized 22x22 versions and are installed into both 
 
 ## Requirements
 
-- KDE Plasma 6.7.x or Plasma 6.8.0 (tested on CachyOS)
+- KDE Plasma 6.7.x or Plasma 6.8.x (6.8.0 runtime-tested on CachyOS)
 - `plasma-nm`
 - a local icon theme named `Win11` at `~/.local/share/icons/Win11`
 - Arch Linux / CachyOS-style `pacman` package metadata
@@ -56,7 +56,7 @@ A package update can overwrite the rebuilt applet plugin. Reapply the mod with:
 ./scripts/verify.sh
 ```
 
-The original managed stock backup is preserved rather than replaced by an already-modified plugin. If you upgraded from Plasma 6.7 to 6.8, archive the *entire* previous `~/.local/state/plasma-network-icon` directory before initial 6.8 installation, and obtain a verified 6.8 stock plugin backup first. Never reuse a 6.7 backup for 6.8.
+The original managed stock backup is preserved rather than replaced by an already-modified plugin. For 6.8.x updates, the installer attempts the exact matching upstream source tag and checks the icon expression; successful reapplication still requires version-matched managed backup state. Later 6.8.x releases are not yet runtime-tested. If you upgraded from Plasma 6.7 to 6.8, archive the *entire* previous `~/.local/state/plasma-network-icon` directory before initial 6.8 installation, and obtain a verified 6.8 stock plugin backup first. Never reuse a 6.7 backup for 6.8.
 
 ## Restore stock Plasma behavior
 

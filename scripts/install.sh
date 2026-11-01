@@ -34,7 +34,7 @@ fi
 pkgver="$(pacman -Q plasma-nm | awk '{print $2}')"
 upstream_ver="${pkgver%%-*}"
 tag="v${upstream_ver}"
-if [[ "$upstream_ver" == "6.8.0" ]]; then
+if [[ "$upstream_ver" == 6.8.* ]]; then
     PATCH="$ROOT/patches/plasma-6.8-win11-wired-icons.patch"
 fi
 
@@ -42,8 +42,8 @@ echo "plasma-nm package: $pkgver"
 echo "Upstream source tag: $tag"
 echo "Plugin: $PLUGIN"
 
-if [[ "$upstream_ver" != 6.7.* && "$upstream_ver" != "6.8.0" ]]; then
-    echo "Refusing unsupported Plasma NM version $upstream_ver. Supports 6.7.x and 6.8.0." >&2
+if [[ "$upstream_ver" != 6.7.* && "$upstream_ver" != 6.8.* ]]; then
+    echo "Refusing unsupported Plasma NM version $upstream_ver. Supports 6.7.x and 6.8.x." >&2
     exit 1
 fi
 
@@ -100,7 +100,7 @@ git clone --depth 1 --branch "$tag" https://github.com/KDE/plasma-nm.git "$SRC"
 
 cd "$SRC"
 
-# Patch the verified stock Plasma 6.7.x / 6.8.0 icon expression without depending on
+# Patch the verified stock Plasma 6.7.x / 6.8.x icon expression without depending on
 # surrounding whitespace/line numbers in a unified diff.
 python - "$SRC/applet/main.qml" <<'PY'
 from pathlib import Path
